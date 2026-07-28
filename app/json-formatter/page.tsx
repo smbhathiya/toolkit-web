@@ -450,7 +450,7 @@ export default function JsonFormatter() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
         {/* Header */}
         <div className="mb-6 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, ChangeEvent, DragEvent } from "react"
+import { useState, useRef, ChangeEvent, DragEvent } from "react"
 import {
   FileText,
   Upload,
@@ -340,7 +340,7 @@ export default function PDFSplitter() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 mx-auto w-full max-w-5xl px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
+      <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
         <ToolHeader
           title="PDF Splitter"
           description="Separate pages from any PDF document or extract custom page ranges client-side."

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Sparkles,
   Copy,
@@ -85,10 +85,10 @@ function getBlobPath(points: Point[]): string {
 }
 
 export default function SVGBlobGenerator() {
-  const [points, setPoints] = useState<Point[]>([])
   const [numPoints, setNumPoints] = useState(6)
   const [randomness, setRandomness] = useState(40)
   const [baseRadius, setBaseRadius] = useState(150)
+  const [points, setPoints] = useState<Point[]>(() => generateRandomPoints(6, 40, 150))
 
   // Styling States
   const [fillMode, setFillMode] = useState<"solid" | "gradient" | "outline">("gradient")
@@ -103,13 +103,8 @@ export default function SVGBlobGenerator() {
   const [copiedPath, setCopiedPath] = useState(false)
 
   // Trigger random points update
-  const handleRegenerate = () => {
+  const handleRegenerate = useCallback(() => {
     setPoints(generateRandomPoints(numPoints, randomness, baseRadius))
-  }
-
-  // Effect to handle changes to basic properties
-  useEffect(() => {
-    handleRegenerate()
   }, [numPoints, randomness, baseRadius])
 
   // Keypress event for Spacebar
@@ -122,7 +117,7 @@ export default function SVGBlobGenerator() {
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [numPoints, randomness, baseRadius])
+  }, [handleRegenerate])
 
   const pathData = getBlobPath(points)
 
@@ -219,7 +214,7 @@ export default function SVGBlobGenerator() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
         {/* Header */}
         <div className="mb-6 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0">
@@ -265,7 +260,11 @@ export default function SVGBlobGenerator() {
                     min={3}
                     max={12}
                     value={numPoints}
-                    onChange={(e) => setNumPoints(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      setNumPoints(val)
+                      setPoints(generateRandomPoints(val, randomness, baseRadius))
+                    }}
                     className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
                 </div>
@@ -283,7 +282,11 @@ export default function SVGBlobGenerator() {
                     min={10}
                     max={90}
                     value={randomness}
-                    onChange={(e) => setRandomness(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      setRandomness(val)
+                      setPoints(generateRandomPoints(numPoints, val, baseRadius))
+                    }}
                     className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
                 </div>
@@ -291,9 +294,9 @@ export default function SVGBlobGenerator() {
                 {/* Base Size */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-foreground">
-                    <label>Base Size Radius</label>
+                    <label>Scale / Size</label>
                     <span className="bg-muted px-2 py-0.5 rounded font-mono font-bold text-[10px]">
-                      {baseRadius}px
+                      {baseRadius}px Radius
                     </span>
                   </div>
                   <input
@@ -301,7 +304,11 @@ export default function SVGBlobGenerator() {
                     min={80}
                     max={200}
                     value={baseRadius}
-                    onChange={(e) => setBaseRadius(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      setBaseRadius(val)
+                      setPoints(generateRandomPoints(numPoints, randomness, val))
+                    }}
                     className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
                 </div>

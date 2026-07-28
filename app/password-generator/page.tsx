@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   KeyRound,
   Copy,
@@ -12,7 +12,6 @@ import {
   Shield,
   ListPlus,
   Info,
-  ChevronRight
 } from "lucide-react"
 import {
   Card,
@@ -147,12 +146,12 @@ export default function PasswordGenerator() {
   const [history, setHistory] = useState<string[]>([])
 
   // Generate password trigger
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
     // If no character type is selected, force lower case to make it valid
     const activeOpts = { ...options }
     if (!options.upper && !options.lower && !options.number && !options.symbol && !options.easyToSay) {
       activeOpts.lower = true
-      setOptions(prev => ({ ...prev, lower: true }))
+      setOptions((prev) => ({ ...prev, lower: true }))
     }
 
     if (bulkMode) {
@@ -163,28 +162,25 @@ export default function PasswordGenerator() {
       setBulkPasswords(generated)
       if (generated[0]) {
         setPassword(generated[0])
-        updateHistory(generated[0])
+        setHistory((prev) => {
+          const filtered = prev.filter((p) => p !== generated[0])
+          return [generated[0], ...filtered].slice(0, 5)
+        })
       }
     } else {
       const newPwd = generateSecurePassword(length, activeOpts)
       setPassword(newPwd)
-      updateHistory(newPwd)
+      setHistory((prev) => {
+        const filtered = prev.filter((p) => p !== newPwd)
+        return [newPwd, ...filtered].slice(0, 5)
+      })
     }
-  }
+  }, [bulkCount, bulkMode, length, options])
 
-  const updateHistory = (newPwd: string) => {
-    if (!newPwd) return
-    setHistory((prev) => {
-      // Remove duplication if exists and take top 5
-      const filtered = prev.filter((p) => p !== newPwd)
-      return [newPwd, ...filtered].slice(0, 5)
-    })
-  }
-
-  // Trigger generation on load
+  // Trigger generation on load and option changes
   useEffect(() => {
     handleGenerate()
-  }, [length, options, bulkMode, bulkCount])
+  }, [handleGenerate])
 
   const handleCopyMain = async () => {
     if (!password) return
@@ -240,7 +236,7 @@ export default function PasswordGenerator() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
         {/* Header */}
         <div className="mb-6 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">

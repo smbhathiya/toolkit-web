@@ -171,7 +171,7 @@ export default function PDFCompressor() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 mx-auto w-full max-w-5xl px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
+      <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
         <ToolHeader
           title="PDF Compressor"
           description="Optimize object streams and structure to reduce PDF file size for fast sharing or storage."

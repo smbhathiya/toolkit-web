@@ -11,7 +11,6 @@ import {
   Baby,
   FileStack,
   Scissors,
-  Stamp,
   Minimize2,
   Layers,
   FileImage,
@@ -20,6 +19,7 @@ import {
   KeyRound,
   Palette,
   Sparkles,
+  Wand2,
   Link2,
   LucideIcon,
 } from "lucide-react"
@@ -59,7 +59,7 @@ export const TOOL_CATEGORIES: Record<string, { label: string; icon: LucideIcon; 
   generators: {
     label: "Generators",
     description: "Create QR codes, barcodes, passwords, colors, GUIDs & SVG blobs.",
-    icon: Sparkles,
+    icon: Wand2,
   },
   developer: {
     label: "Developer",

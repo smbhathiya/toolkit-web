@@ -76,7 +76,8 @@ export default function ImageCompressor() {
     item: ImageItem,
     preset: CompressionPreset,
     quality: number,
-    maxDim: number
+    maxDim: number,
+    format: "auto" | "webp" | "jpeg" | "png" = targetFormat
   ) => {
     setItems((prev) =>
       prev.map((i) => (i.id === item.id ? { ...i, isCompressing: true, error: undefined } : i))
@@ -91,13 +92,9 @@ export default function ImageCompressor() {
 
         // Apply scale down if max dimension set and image exceeds it
         if (maxDim > 0 && (img.width > maxDim || img.height > maxDim)) {
-          if (img.width > img.height) {
-            targetWidth = maxDim
-            targetHeight = Math.round((img.height * maxDim) / img.width)
-          } else {
-            targetHeight = maxDim
-            targetWidth = Math.round((img.width * maxDim) / img.height)
-          }
+          const scale = maxDim / Math.max(img.width, img.height)
+          targetWidth = Math.round(img.width * scale)
+          targetHeight = Math.round(img.height * scale)
         }
 
         const canvas = document.createElement("canvas")
@@ -113,10 +110,14 @@ export default function ImageCompressor() {
 
         const isPng = item.file.type === "image/png" || item.originalName.toLowerCase().endsWith(".png")
 
-        // If not PNG or user chose max compression, convert to WebP/JPEG for maximum size reduction
+        // Select optimal output MIME type
         let mimeType = item.file.type
-        if (preset === "max" || (!isPng && mimeType !== "image/webp")) {
+        if (format === "webp" || (format === "auto" && (isPng || preset === "smart" || preset === "max"))) {
           mimeType = "image/webp"
+        } else if (format === "jpeg") {
+          mimeType = "image/jpeg"
+        } else if (format === "png") {
+          mimeType = "image/png"
         }
 
         if (mimeType === "image/jpeg") {
@@ -126,7 +127,7 @@ export default function ImageCompressor() {
 
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
 
-        const effQuality = preset === "smart" ? 0.8 : preset === "max" ? 0.6 : quality / 100
+        const effQuality = preset === "smart" ? 0.75 : preset === "max" ? 0.55 : quality / 100
 
         canvas.toBlob(
           (blob) => {
@@ -139,8 +140,17 @@ export default function ImageCompressor() {
               return
             }
 
-            const url = URL.createObjectURL(blob)
-            const ext = mimeType === "image/webp" ? "webp" : mimeType === "image/jpeg" ? "jpg" : "png"
+            let finalBlob = blob
+            let finalMime = mimeType
+
+            // Safety check: if format is auto and compressed size exceeds original, fallback to WebP or original
+            if (blob.size >= item.originalSize && format === "auto" && maxDim === 0 && !isPng) {
+              finalBlob = item.file
+              finalMime = item.file.type
+            }
+
+            const url = URL.createObjectURL(finalBlob)
+            const ext = finalMime === "image/webp" ? "webp" : finalMime === "image/jpeg" ? "jpg" : "png"
             const baseName = item.originalName.substring(0, item.originalName.lastIndexOf(".")) || item.originalName
             const compressedName = `${baseName}_min.${ext}`
 
@@ -152,7 +162,7 @@ export default function ImageCompressor() {
                       preset,
                       quality,
                       compressedUrl: url,
-                      compressedSize: blob.size,
+                      compressedSize: finalBlob.size,
                       compressedName,
                       isCompressing: false,
                     }
@@ -302,7 +312,7 @@ export default function ImageCompressor() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
