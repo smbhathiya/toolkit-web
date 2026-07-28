@@ -8,12 +8,11 @@ import {
   Menu,
   X,
   ArrowUpRight,
-  Sparkles,
 } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TOOL_CATEGORIES, ALL_TOOLS, ToolItem } from "@/lib/tools-registry"
+import { TOOL_CATEGORIES, ALL_TOOLS } from "@/lib/tools-registry"
 
 export function Navbar() {
   const [isVisible, setIsVisible] = useState(true)

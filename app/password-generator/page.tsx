@@ -179,7 +179,13 @@ export default function PasswordGenerator() {
 
   // Trigger generation on load and option changes
   useEffect(() => {
-    handleGenerate()
+    let active = true
+    Promise.resolve().then(() => {
+      if (active) handleGenerate()
+    })
+    return () => {
+      active = false
+    }
   }, [handleGenerate])
 
   const handleCopyMain = async () => {

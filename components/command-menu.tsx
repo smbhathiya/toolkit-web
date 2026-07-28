@@ -43,10 +43,6 @@ export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {
       tool.category.toLowerCase().includes(query.toLowerCase())
   )
 
-  useEffect(() => {
-    setSelectedIndex(0)
-  }, [query])
-
   const handleSelect = (tool: ToolItem) => {
     router.push(tool.href)
     onClose()
@@ -84,12 +80,18 @@ export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {
             autoFocus
             placeholder="Type a command or search tools (e.g., Merge PDF, Compress, QR)..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setSelectedIndex(0)
+            }}
             className="w-full bg-transparent text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
           />
           {query ? (
             <button
-              onClick={() => setQuery("")}
+              onClick={() => {
+                setQuery("")
+                setSelectedIndex(0)
+              }}
               className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <X className="h-4 w-4" />

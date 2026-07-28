@@ -69,7 +69,7 @@ export default function WaterIntake() {
     })
     prevResultRef.current = result
     return () => ctx.revert()
-  }, [result?.liters, result?.glasses, result?.ml])
+  }, [result])
 
   const fillPct = result ? Math.min(92, (result.liters / 5) * 100) : 0
 

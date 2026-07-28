@@ -8,7 +8,6 @@ import {
   Download,
   Loader2,
   AlertCircle,
-  Check,
   Plus,
   Sparkles,
   X,
@@ -581,6 +580,7 @@ export default function ImageConverter() {
                           }}
                           className="w-14 h-14 rounded-lg border border-border bg-muted/30 flex items-center justify-center overflow-hidden shrink-0 relative"
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={item.originalUrl}
                             alt={item.originalName}

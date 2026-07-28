@@ -32,6 +32,7 @@ interface SourceDoc {
   pageCount: number
   color: string
   isImage?: boolean
+  previewUrl?: string
 }
 
 interface PageItem {
@@ -102,6 +103,7 @@ export default function PDFOrganizer() {
     const newPages: PageItem[] = []
     const pdfDocsToRender: SourceDoc[] = []
 
+    // eslint-disable-next-line react-hooks/purity
     const batchTimestamp = Date.now()
 
     for (let index = 0; index < validFiles.length; index++) {
@@ -119,6 +121,7 @@ export default function PDFOrganizer() {
           pageCount: 1,
           color,
           isImage: true,
+          previewUrl,
         }
         newDocs.push(sourceDoc)
 
@@ -174,11 +177,11 @@ export default function PDFOrganizer() {
     setIsLoadingFiles(false)
 
     if (pdfDocsToRender.length > 0) {
-      renderThumbnailsForFiles(pdfDocsToRender, newPages)
+      renderThumbnailsForFiles(pdfDocsToRender)
     }
   }
 
-  const renderThumbnailsForFiles = async (newDocs: SourceDoc[], newPages: PageItem[]) => {
+  const renderThumbnailsForFiles = async (newDocs: SourceDoc[]) => {
     try {
       if (!(window as unknown as { pdfjsLib?: unknown }).pdfjsLib) {
         await new Promise((resolve, reject) => {

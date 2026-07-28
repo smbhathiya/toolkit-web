@@ -91,7 +91,7 @@ interface ErrorDetails {
 // Tree view component for interactive JSON display
 interface TreeNodeProps {
   name?: string
-  value: any
+  value: unknown
   isLast?: boolean
   depth?: number
 }
@@ -170,7 +170,7 @@ function JsonTreeNode({ name, value, isLast = true, depth = 0 }: TreeNodeProps) 
                   <JsonTreeNode
                     key={key}
                     name={key}
-                    value={value[key]}
+                    value={(value as Record<string, unknown>)[key]}
                     isLast={idx === keys.length - 1}
                     depth={depth + 1}
                   />
@@ -189,7 +189,7 @@ function JsonTreeNode({ name, value, isLast = true, depth = 0 }: TreeNodeProps) 
   }
 
   // Primitive Types
-  let valueNode = null
+  let valueNode: React.ReactNode = null
   if (value === null) {
     valueNode = <span className="text-amber-600 dark:text-amber-400 font-medium">null</span>
   } else if (typeof value === "boolean") {
@@ -201,10 +201,10 @@ function JsonTreeNode({ name, value, isLast = true, depth = 0 }: TreeNodeProps) 
   } else if (typeof value === "number") {
     valueNode = <span className="text-sky-600 dark:text-sky-400 font-medium">{value}</span>
   } else {
-    // string
+    // string or unknown primitive
     valueNode = (
       <span className="text-orange-600 dark:text-orange-400 font-medium break-all">
-        &quot;{value}&quot;
+        &quot;{String(value)}&quot;
       </span>
     )
   }
@@ -276,15 +276,15 @@ export default function JsonFormatter() {
   })
 
   // Parse depth helper
-  const getJsonDepth = (obj: any): number => {
+  const getJsonDepth = (obj: unknown): number => {
     if (obj === null || typeof obj !== "object") return 0
-    const keys = Object.keys(obj)
+    const keys = Object.keys(obj as Record<string, unknown>)
     if (keys.length === 0) return 1
-    return 1 + Math.max(...keys.map((k) => getJsonDepth(obj[k])))
+    return 1 + Math.max(...keys.map((k) => getJsonDepth((obj as Record<string, unknown>)[k])))
   }
 
   // Parse keys count helper
-  const countKeys = (obj: any): number => {
+  const countKeys = (obj: unknown): number => {
     if (obj === null || typeof obj !== "object") return 0
     let count = 0
     if (Array.isArray(obj)) {
@@ -292,10 +292,10 @@ export default function JsonFormatter() {
         count += countKeys(val)
       })
     } else {
-      const keys = Object.keys(obj)
+      const keys = Object.keys(obj as Record<string, unknown>)
       count += keys.length
       keys.forEach((k) => {
-        count += countKeys(obj[k])
+        count += countKeys((obj as Record<string, unknown>)[k])
       })
     }
     return count
@@ -327,9 +327,10 @@ export default function JsonFormatter() {
         chars: text.length,
       })
       return parsedObj
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsValid(false)
-      const msg = err.message || "Invalid JSON"
+      const error = err as Error
+      const msg = error.message || "Invalid JSON"
       let errorLine = undefined
       let errorCol = undefined
 

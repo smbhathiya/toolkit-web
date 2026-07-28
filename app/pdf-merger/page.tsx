@@ -14,7 +14,6 @@ import {
   Check,
   Plus,
   GripVertical,
-  Layers,
   Sparkles,
   FileImage,
 } from "lucide-react"
@@ -27,7 +26,6 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ToolHeader } from "@/components/tool-header"

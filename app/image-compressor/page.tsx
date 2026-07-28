@@ -2,7 +2,6 @@
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react"
 import {
-  FileImage,
   Upload,
   Trash2,
   Download,
@@ -11,20 +10,11 @@ import {
   Check,
   Plus,
   Minimize2,
-  Sparkles,
-  ArrowRight,
-  Sliders,
   X,
   Zap,
   Eye,
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
@@ -524,6 +514,7 @@ export default function ImageCompressor() {
                       {/* Left thumbnail */}
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-14 h-14 rounded-lg border border-border bg-muted/30 flex items-center justify-center overflow-hidden shrink-0 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={item.originalUrl}
                             alt={item.originalName}
@@ -626,6 +617,7 @@ export default function ImageCompressor() {
                   <Badge variant="outline">{formatBytes(previewItem.originalSize)}</Badge>
                 </div>
                 <div className="aspect-video rounded-xl border border-border bg-background flex items-center justify-center p-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewItem.originalUrl} alt="Original" className="max-h-full max-w-full object-contain" />
                 </div>
               </div>
@@ -636,6 +628,7 @@ export default function ImageCompressor() {
                   <Badge className="bg-emerald-600 text-white">{formatBytes(previewItem.compressedSize!)}</Badge>
                 </div>
                 <div className="aspect-video rounded-xl border border-emerald-500/40 bg-background flex items-center justify-center p-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewItem.compressedUrl} alt="Reduced" className="max-h-full max-w-full object-contain" />
                 </div>
               </div>

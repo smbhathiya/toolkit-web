@@ -13,7 +13,6 @@ import {
   RotateCw,
   Sparkles,
   GripVertical,
-  Plus,
 } from "lucide-react"
 import { PDFDocument, PageSizes, degrees } from "pdf-lib"
 import {
@@ -24,7 +23,6 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"

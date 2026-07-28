@@ -75,7 +75,7 @@ export const TOOL_CATEGORIES: Record<string, { label: string; icon: LucideIcon; 
 }
 
 export const ALL_TOOLS: ToolItem[] = [
-  // Document Tools (PDF Suite - ILovePDF Rivals!)
+  // Document Tools
   {
     id: "pdf-organizer",
     name: "PDF Split & Merge Studio",

@@ -307,7 +307,6 @@ export default function FaviconGenerator() {
           iconClass="text-rose-500"
           iconWrapperClass="bg-rose-500/10 border-rose-500/20"
           categoryName="Generators"
-          badgeText="FAVICON.IO RIVAL"
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
