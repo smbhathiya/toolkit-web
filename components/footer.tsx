@@ -224,9 +224,6 @@ export function Footer() {
               &copy; {new Date().getFullYear()} OmniTool By BEE. All rights
               reserved.
             </span>
-            <span className="font-mono text-[10px] font-semibold text-muted-foreground/70">
-              v{version}
-            </span>
           </div>
           <span className="flex items-center gap-1">
             Built with{" "}
