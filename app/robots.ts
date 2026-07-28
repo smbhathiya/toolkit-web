@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: "https://omnitool.bhathiya.dev/sitemap.xml",
+    sitemap: "https://utilbee.bhathiya.dev/sitemap.xml",
   }
 }

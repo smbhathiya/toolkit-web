@@ -1,8 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="12" fill="#e11d48"/>
-  <g transform="translate(12 12) scale(1.6667)" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
-    <circle cx="12" cy="12" r="1.6" fill="#FFFFFF" stroke="none"/>
-    <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
-    <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Clean Solid Background -->
+  <rect width="512" height="512" rx="128" fill="#E11D48" />
+
+  <!-- Pure White Only Vector Geometry -->
+  <g transform="translate(256 256) scale(1.15)">
+    <!-- Outer Honeycomb Ring -->
+    <path d="M0 -150 L130 -75 L130 75 L0 150 L-130 75 L-130 -75 Z" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linejoin="round" opacity="0.4" />
+
+    <!-- Bee Wings Left & Right -->
+    <path d="M-36 -45 C-110 -110 -110 -15 -36 -15 Z" fill="#FFFFFF" opacity="0.9" />
+    <path d="M36 -45 C110 -110 110 -15 36 -15 Z" fill="#FFFFFF" opacity="0.9" />
+
+    <!-- Bee Body & Central Hexagon -->
+    <path d="M0 -70 L60 -35 L60 35 L0 70 L-60 35 L-60 -35 Z" fill="#FFFFFF" />
+
+    <!-- Inner Stripes Cutout -->
+    <path d="M-45 -12 L45 -12" stroke="#E11D48" stroke-width="12" stroke-linecap="round" />
+    <path d="M-38 16 L38 16" stroke="#E11D48" stroke-width="12" stroke-linecap="round" />
+
+    <!-- Top Antennae -->
+    <circle cx="-30" cy="-90" r="10" fill="#FFFFFF" />
+    <circle cx="30" cy="-90" r="10" fill="#FFFFFF" />
+    <path d="M-20 -65 L-30 -82" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
+    <path d="M20 -65 L30 -82" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
   </g>
 </svg>

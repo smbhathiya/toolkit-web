@@ -175,7 +175,7 @@ export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {
             </span>
           </div>
           <span className="flex items-center gap-1">
-            <Command className="w-3 h-3" /> OmniTool Quick Command Palette
+            <Command className="w-3 h-3" /> UtilBEE Quick Command Palette
           </span>
         </div>
       </div>

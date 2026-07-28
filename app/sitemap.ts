@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { ALL_TOOLS } from "@/lib/tools-registry"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://omnitool.bhathiya.dev"
+  const baseUrl = "https://utilbee.bhathiya.dev"
 
   const toolRoutes = ALL_TOOLS.map((tool) => ({
     url: `${baseUrl}${tool.href}`,
