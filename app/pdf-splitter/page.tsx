@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ToolHeader } from "@/components/tool-header"
 
 interface SplitFileResult {
   filename: string
@@ -339,16 +340,15 @@ export default function PDFSplitter() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-24 pb-12 max-w-4xl">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-amber-500/10 text-amber-500 mb-4">
-            <Scissors className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">PDF Splitter</h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Preview, select, and separate pages from a PDF document into new PDF files instantly.
-          </p>
-        </div>
+      <main className="flex-1 mx-auto w-full max-w-5xl px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
+        <ToolHeader
+          title="PDF Splitter"
+          description="Separate pages from any PDF document or extract custom page ranges client-side."
+          icon={Scissors}
+          iconClass="text-amber-500"
+          iconWrapperClass="bg-amber-500/10 border-amber-500/20"
+          categoryName="PDF Tools"
+        />
 
         <Card className="shadow-sm border">
           <CardHeader>

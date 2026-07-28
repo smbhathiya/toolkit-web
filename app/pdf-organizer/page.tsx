@@ -3,23 +3,15 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react"
 import {
   FileText,
-  Upload,
   Trash2,
   Download,
   Loader2,
-  FileStack,
   AlertCircle,
   Check,
   Plus,
   RotateCw,
-  RotateCcw,
-  ArrowLeft,
-  ArrowRight,
-  Eye,
   CheckSquare,
   Square,
-  Grid,
-  Sparkles,
   Layers,
   X,
 } from "lucide-react"
@@ -27,14 +19,11 @@ import { PDFDocument, degrees } from "pdf-lib"
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ToolHeader } from "@/components/tool-header"
 
 interface SourceDoc {
   id: string
@@ -42,6 +31,7 @@ interface SourceDoc {
   file: File
   pageCount: number
   color: string
+  isImage?: boolean
 }
 
 interface PageItem {
@@ -53,6 +43,7 @@ interface PageItem {
   rotation: number // 0, 90, 180, 270
   selected: boolean
   thumbnail?: string
+  isImage?: boolean
 }
 
 const COLOR_PALETTE = [
@@ -90,17 +81,18 @@ export default function PDFOrganizer() {
   const [draggedPageIndex, setDraggedPageIndex] = useState<number | null>(null)
   const [dragOverPageIndex, setDragOverPageIndex] = useState<number | null>(null)
 
-  // Preview Modal
-  const [previewPage, setPreviewPage] = useState<PageItem | null>(null)
-
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const processFiles = async (files: File[]) => {
-    const pdfFiles = files.filter(
-      (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
+    const validFiles = files.filter(
+      (f) =>
+        f.type === "application/pdf" ||
+        f.name.toLowerCase().endsWith(".pdf") ||
+        f.type.startsWith("image/") ||
+        /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(f.name)
     )
 
-    if (pdfFiles.length === 0) return
+    if (validFiles.length === 0) return
 
     setIsLoadingFiles(true)
     setErrorMessage(null)
@@ -108,40 +100,72 @@ export default function PDFOrganizer() {
 
     const newDocs: SourceDoc[] = []
     const newPages: PageItem[] = []
+    const pdfDocsToRender: SourceDoc[] = []
 
-    for (let index = 0; index < pdfFiles.length; index++) {
-      const file = pdfFiles[index]
-      const docId = Math.random().toString(36).substring(2, 9) + Date.now()
+    const batchTimestamp = Date.now()
+
+    for (let index = 0; index < validFiles.length; index++) {
+      const file = validFiles[index]
+      const docId = `doc_${batchTimestamp}_${index}`
       const color = COLOR_PALETTE[(sourceDocs.length + index) % COLOR_PALETTE.length]
+      const isImg = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(file.name)
 
-      try {
-        const arrayBuffer = await file.arrayBuffer()
-        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true })
-        const pageCount = pdfDoc.getPageCount()
-
+      if (isImg) {
+        const previewUrl = URL.createObjectURL(file)
         const sourceDoc: SourceDoc = {
           id: docId,
           name: file.name,
           file,
-          pageCount,
+          pageCount: 1,
           color,
+          isImage: true,
         }
         newDocs.push(sourceDoc)
 
-        for (let i = 0; i < pageCount; i++) {
-          newPages.push({
-            id: `${docId}-p${i}-${Math.random().toString(36).substring(2, 5)}`,
-            docId,
-            docName: file.name,
-            docColor: color,
-            originalPageIndex: i,
-            rotation: 0,
-            selected: true,
-          })
+        newPages.push({
+          id: `${docId}_img_0`,
+          docId,
+          docName: file.name,
+          docColor: color,
+          originalPageIndex: 0,
+          rotation: 0,
+          selected: true,
+          thumbnail: previewUrl,
+          isImage: true,
+        })
+      } else {
+        try {
+          const arrayBuffer = await file.arrayBuffer()
+          const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true })
+          const pageCount = pdfDoc.getPageCount()
+
+          const sourceDoc: SourceDoc = {
+            id: docId,
+            name: file.name,
+            file,
+            pageCount,
+            color,
+            isImage: false,
+          }
+          newDocs.push(sourceDoc)
+          pdfDocsToRender.push(sourceDoc)
+
+          for (let i = 0; i < pageCount; i++) {
+            newPages.push({
+              id: `${docId}_p_${i}`,
+              docId,
+              docName: file.name,
+              docColor: color,
+              originalPageIndex: i,
+              rotation: 0,
+              selected: true,
+              isImage: false,
+            })
+          }
+        } catch (err) {
+          console.error("Error reading PDF:", err)
+          setErrorMessage(`Failed to read "${file.name}". It might be encrypted or corrupted.`)
         }
-      } catch (err) {
-        console.error("Error reading PDF:", err)
-        setErrorMessage(`Failed to read "${file.name}". It might be encrypted or corrupted.`)
       }
     }
 
@@ -149,8 +173,9 @@ export default function PDFOrganizer() {
     setPages((prev) => [...prev, ...newPages])
     setIsLoadingFiles(false)
 
-    // Render thumbnails asynchronously
-    renderThumbnailsForFiles(newDocs, newPages)
+    if (pdfDocsToRender.length > 0) {
+      renderThumbnailsForFiles(pdfDocsToRender, newPages)
+    }
   }
 
   const renderThumbnailsForFiles = async (newDocs: SourceDoc[], newPages: PageItem[]) => {
@@ -169,6 +194,7 @@ export default function PDFOrganizer() {
       pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
 
       for (const doc of newDocs) {
+        if (doc.isImage) continue
         const arrayBuffer = await doc.file.arrayBuffer()
         const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
         const pdfDoc = (await loadingTask.promise) as { getPage: (num: number) => Promise<unknown> }
@@ -178,15 +204,14 @@ export default function PDFOrganizer() {
             getViewport: (opts: { scale: number }) => { width: number; height: number }
             render: (params: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> }
           }
-          const viewport = page.getViewport({ scale: 0.35 })
+          const viewport = page.getViewport({ scale: 0.3 })
           const canvas = document.createElement("canvas")
-          const context = canvas.getContext("2d")
-
-          if (context) {
-            canvas.height = viewport.height
-            canvas.width = viewport.width
-            await page.render({ canvasContext: context, viewport }).promise
-            const dataUrl = canvas.toDataURL("image/png")
+          canvas.width = viewport.width
+          canvas.height = viewport.height
+          const ctx = canvas.getContext("2d")
+          if (ctx) {
+            await page.render({ canvasContext: ctx, viewport }).promise
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.7)
 
             setPages((prev) =>
               prev.map((p) =>
@@ -226,7 +251,6 @@ export default function PDFOrganizer() {
     }
   }
 
-  // Page manipulations
   const togglePageSelect = (id: string) => {
     setPages((prev) => prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p)))
   }
@@ -247,35 +271,36 @@ export default function PDFOrganizer() {
     setPages((prev) => prev.filter((p) => p.id !== id))
   }
 
-  const movePage = (index: number, direction: -1 | 1) => {
-    const targetIndex = index + direction
-    if (targetIndex < 0 || targetIndex >= pages.length) return
-    const updated = [...pages]
-    const [movedItem] = updated.splice(index, 1)
-    updated.splice(targetIndex, 0, movedItem)
-    setPages(updated)
+  const selectAll = () => {
+    setPages((prev) => prev.map((p) => ({ ...p, selected: true })))
   }
 
-  const selectAll = () => setPages((prev) => prev.map((p) => ({ ...p, selected: true })))
-  const deselectAll = () => setPages((prev) => prev.map((p) => ({ ...p, selected: false })))
+  const deselectAll = () => {
+    setPages((prev) => prev.map((p) => ({ ...p, selected: false })))
+  }
+
   const clearAll = () => {
     setSourceDocs([])
     setPages([])
     setMergedUrl(null)
+    setErrorMessage(null)
   }
 
-  // HTML5 Drag reorder for page cards
-  const handleItemDragStart = (index: number) => setDraggedPageIndex(index)
-  const handleItemDragOver = (e: DragEvent<HTMLDivElement>, index: number) => {
+  const handleDragStartPage = (e: DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedPageIndex(index)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOverPage = (e: DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault()
+    if (draggedPageIndex === null || draggedPageIndex === index) return
     setDragOverPageIndex(index)
   }
-  const handleItemDrop = (index: number) => {
-    if (draggedPageIndex === null || draggedPageIndex === index) {
-      setDraggedPageIndex(null)
-      setDragOverPageIndex(null)
-      return
-    }
+
+  const handleDropPage = (e: DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault()
+    if (draggedPageIndex === null) return
+
     const updated = [...pages]
     const [movedItem] = updated.splice(draggedPageIndex, 1)
     updated.splice(index, 0, movedItem)
@@ -284,7 +309,32 @@ export default function PDFOrganizer() {
     setDragOverPageIndex(null)
   }
 
-  // Merge execution
+  const convertImageToPngBytes = async (file: File): Promise<Uint8Array> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return reject("Canvas context error")
+        ctx.drawImage(img, 0, 0)
+        canvas.toBlob(async (blob) => {
+          if (!blob) return reject("Canvas blob error")
+          const buf = await blob.arrayBuffer()
+          URL.revokeObjectURL(url)
+          resolve(new Uint8Array(buf))
+        }, "image/png")
+      }
+      img.onerror = (err) => {
+        URL.revokeObjectURL(url)
+        reject(err)
+      }
+      img.src = url
+    })
+  }
+
   const handleMergeAndExport = async () => {
     const selectedPages = pages.filter((p) => p.selected)
     if (selectedPages.length === 0) {
@@ -300,21 +350,47 @@ export default function PDFOrganizer() {
       const loadedDocsMap: { [docId: string]: PDFDocument } = {}
 
       for (const p of selectedPages) {
-        if (!loadedDocsMap[p.docId]) {
-          const src = sourceDocs.find((d) => d.id === p.docId)
-          if (src) {
+        const src = sourceDocs.find((d) => d.id === p.docId)
+        if (!src) continue
+
+        if (src.isImage) {
+          // Embed image as PDF page
+          let embeddedImage
+          const fileType = src.file.type.toLowerCase()
+          if (fileType === "image/jpeg" || fileType === "image/jpg") {
+            const bytes = await src.file.arrayBuffer()
+            embeddedImage = await mergedPdf.embedJpg(bytes)
+          } else if (fileType === "image/png") {
+            const bytes = await src.file.arrayBuffer()
+            embeddedImage = await mergedPdf.embedPng(bytes)
+          } else {
+            const pngBytes = await convertImageToPngBytes(src.file)
+            embeddedImage = await mergedPdf.embedPng(pngBytes)
+          }
+
+          const page = mergedPdf.addPage([embeddedImage.width, embeddedImage.height])
+          page.drawImage(embeddedImage, {
+            x: 0,
+            y: 0,
+            width: embeddedImage.width,
+            height: embeddedImage.height,
+            rotate: degrees(p.rotation),
+          })
+        } else {
+          // PDF Page
+          if (!loadedDocsMap[p.docId]) {
             const buffer = await src.file.arrayBuffer()
             loadedDocsMap[p.docId] = await PDFDocument.load(buffer, { ignoreEncryption: true })
           }
-        }
-        const srcDoc = loadedDocsMap[p.docId]
-        if (srcDoc) {
-          const [copiedPage] = await mergedPdf.copyPages(srcDoc, [p.originalPageIndex])
-          if (p.rotation !== 0) {
-            const current = copiedPage.getRotation().angle
-            copiedPage.setRotation(degrees((current + p.rotation) % 360))
+          const srcDoc = loadedDocsMap[p.docId]
+          if (srcDoc) {
+            const [copiedPage] = await mergedPdf.copyPages(srcDoc, [p.originalPageIndex])
+            if (p.rotation !== 0) {
+              const current = copiedPage.getRotation().angle
+              copiedPage.setRotation(degrees((current + p.rotation) % 360))
+            }
+            mergedPdf.addPage(copiedPage)
           }
-          mergedPdf.addPage(copiedPage)
         }
       }
 
@@ -322,13 +398,13 @@ export default function PDFOrganizer() {
       const blob = new Blob([pdfBytes as unknown as BlobPart], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
 
-      const filename = `Organized_Toolkit_${Date.now()}.pdf`
+      const filename = `Studio_Compiled_${Date.now()}.pdf`
       setMergedUrl(url)
       setMergedFilename(filename)
       setMergedSize(blob.size)
     } catch (err) {
       console.error("Merge error:", err)
-      setErrorMessage("Failed to merge PDF pages. Please try again.")
+      setErrorMessage("Failed to merge PDF & Image pages. Please try again.")
     } finally {
       setIsProcessing(false)
     }
@@ -340,49 +416,60 @@ export default function PDFOrganizer() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="secondary" className="gap-1 text-xs px-2.5 py-0.5 font-medium">
-                <Sparkles className="w-3 h-3 text-primary" /> Multi-PDF Studio
-              </Badge>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-4xl">
-              PDF Split & Merge Studio
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Upload multiple PDFs at once, extract pages, reorder visually, select needed pages, and merge into a new document.
-            </p>
-          </div>
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
+        <ToolHeader
+          title="PDF & Image Studio"
+          description="Visual canvas: upload multiple PDFs & Images, extract pages, reorder visually, rotate, select custom pages & merge into new PDF documents."
+          icon={Layers}
+          iconClass="text-indigo-500"
+          iconWrapperClass="bg-indigo-500/10 border-indigo-500/20"
+          categoryName="PDF Tools"
+          badgeText="MULTI-FORMAT CANVAS"
+        />
 
-          {pages.length > 0 && (
-            <div className="flex items-center gap-2 shrink-0">
+        {pages.length > 0 && (
+          <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoadingFiles}
-                className="gap-1.5"
+                className="gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4" /> Add PDFs
+                <Plus className="w-4 h-4" /> Add PDFs / Images
               </Button>
               <Button
-                variant="destructive"
+                variant="outline"
                 size="sm"
-                onClick={clearAll}
-                className="gap-1.5"
+                onClick={selectAll}
+                className="gap-1.5 cursor-pointer"
               >
-                <Trash2 className="w-4 h-4" /> Clear Studio
+                <CheckSquare className="w-4 h-4" /> Select All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={deselectAll}
+                className="gap-1.5 cursor-pointer"
+              >
+                <Square className="w-4 h-4" /> Deselect All
               </Button>
             </div>
-          )}
-        </div>
 
-        {/* Error alert */}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={clearAll}
+              className="gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Clear Studio
+            </Button>
+          </div>
+        )}
+
         {errorMessage && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className="mb-6 flex items-start gap-3 rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="flex-1">{errorMessage}</div>
             <button onClick={() => setErrorMessage(null)} className="opacity-70 hover:opacity-100">
@@ -391,9 +478,8 @@ export default function PDFOrganizer() {
           </div>
         )}
 
-        {/* File Dropzone if no pages */}
         {pages.length === 0 ? (
-          <Card className="border-2 border-dashed border-border transition-colors hover:border-primary/50">
+          <Card className="border-2 border-dashed border-border transition-colors hover:border-indigo-500/50">
             <CardContent className="p-0">
               <div
                 onDragOver={handleDragOver}
@@ -401,262 +487,163 @@ export default function PDFOrganizer() {
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`flex flex-col items-center justify-center py-16 px-6 text-center cursor-pointer transition-colors ${
-                  isDragging ? "bg-primary/5" : ""
+                  isDragging ? "bg-indigo-500/5" : ""
                 }`}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,application/pdf"
+                  accept=".pdf,application/pdf,image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg"
                   multiple
                   onChange={handleFileInputChange}
                   className="hidden"
                 />
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                <div className="w-16 h-16 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 text-indigo-500 border border-indigo-500/20">
                   {isLoadingFiles ? (
                     <Loader2 className="w-8 h-8 animate-spin" />
                   ) : (
                     <Layers className="w-8 h-8" />
                   )}
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Upload PDF files to start organizing
+                <h3 className="text-lg font-bold text-foreground mb-1">
+                  Upload PDFs or Image files
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-md mb-6">
-                  Drag & drop multiple PDF files here, or click to browse from your computer. You can split, reorder, rotate, and merge all in one workspace.
+                <p className="text-xs text-muted-foreground max-w-sm mb-4">
+                  Drag and drop files here, or click to browse. Supports PDF documents & JPG, PNG, WEBP, GIF, SVG images.
                 </p>
-                <Button disabled={isLoadingFiles} className="gap-2 shadow-sm">
-                  <Upload className="w-4 h-4" /> Choose PDF Files
+                <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer">
+                  Select Files
                 </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* Hidden file input for adding more files */}
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,application/pdf"
+              accept=".pdf,application/pdf,image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg"
               multiple
               onChange={handleFileInputChange}
               className="hidden"
             />
 
-            {/* Document Badges Summary */}
-            <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-card border border-border">
-              <span className="text-xs font-semibold text-muted-foreground mr-1 flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5" /> Source Files ({sourceDocs.length}):
-              </span>
-              {sourceDocs.map((doc) => (
-                <Badge key={doc.id} variant="outline" className={`gap-1.5 text-xs py-1 ${doc.color}`}>
-                  <span className="font-medium truncate max-w-[160px]">{doc.name}</span>
-                  <span className="opacity-70">({doc.pageCount} pgs)</span>
-                </Badge>
-              ))}
-            </div>
-
-            {/* Workbench Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button size="sm" variant="secondary" onClick={selectAll} className="gap-1.5 text-xs">
-                  <CheckSquare className="w-3.5 h-3.5" /> Select All ({pages.length})
-                </Button>
-                <Button size="sm" variant="ghost" onClick={deselectAll} className="gap-1.5 text-xs">
-                  <Square className="w-3.5 h-3.5" /> Deselect All
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="text-xs text-muted-foreground">
-                  Selected: <strong className="text-foreground">{selectedCount}</strong> / {pages.length} pages
-                </div>
-
-                <Button
-                  onClick={handleMergeAndExport}
-                  disabled={isProcessing || selectedCount === 0}
-                  className="gap-2 shadow-md"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Merging...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" /> Merge & Download PDF
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Merged Download Banner */}
-            {mergedUrl && (
-              <Card className="border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-950/20">
-                <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5">
-                  <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-300">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                      <Check className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm sm:text-base">
-                        Your compiled PDF is ready!
-                      </h4>
-                      <p className="text-xs opacity-80">
-                        {mergedFilename} • {formatBytes(mergedSize)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a href={mergedUrl} download={mergedFilename}>
-                      <Button size="sm" className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <Download className="w-4 h-4" /> Download PDF
-                      </Button>
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Page Grid */}
+            {/* Visual Canvas Page Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {pages.map((page, index) => (
                 <div
                   key={page.id}
                   draggable
-                  onDragStart={() => handleItemDragStart(index)}
-                  onDragOver={(e) => handleItemDragOver(e, index)}
-                  onDrop={() => handleItemDrop(index)}
-                  className={`group relative flex flex-col rounded-xl border transition-all duration-200 bg-card ${
-                    page.selected
-                      ? "border-primary ring-1 ring-primary/30 shadow-sm"
-                      : "border-border opacity-60 hover:opacity-90"
-                  } ${dragOverPageIndex === index ? "border-dashed border-primary scale-[1.02]" : ""}`}
+                  onDragStart={(e) => handleDragStartPage(e, index)}
+                  onDragOver={(e) => handleDragOverPage(e, index)}
+                  onDrop={(e) => handleDropPage(e, index)}
+                  className={`group relative rounded-md border bg-card p-2.5 transition-all shadow-xs flex flex-col justify-between ${
+                    page.selected ? "border-indigo-500 ring-2 ring-indigo-500/20" : "border-border opacity-60"
+                  } ${dragOverPageIndex === index ? "border-rose-500 bg-rose-500/5 scale-105" : ""}`}
                 >
-                  {/* Top Bar inside card */}
-                  <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border bg-muted/40 text-xs">
-                    <div className="flex items-center gap-1 overflow-hidden">
-                      <button
-                        onClick={() => togglePageSelect(page.id)}
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        {page.selected ? (
-                          <CheckSquare className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Square className="w-4 h-4" />
-                        )}
-                      </button>
-                      <span className="font-semibold text-foreground">#{index + 1}</span>
-                    </div>
+                  <div className="flex items-center justify-between mb-2 text-[11px]">
+                    <span className={`px-1.5 py-0.5 rounded font-mono font-bold text-[10px] ${page.docColor}`}>
+                      {page.isImage ? "IMG" : `P.${page.originalPageIndex + 1}`}
+                    </span>
 
-                    <div className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100">
-                      <button
-                        onClick={() => movePage(index, -1)}
-                        disabled={index === 0}
-                        title="Move left"
-                        className="p-1 hover:bg-background rounded disabled:opacity-30"
-                      >
-                        <ArrowLeft className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => movePage(index, 1)}
-                        disabled={index === pages.length - 1}
-                        title="Move right"
-                        className="p-1 hover:bg-background rounded disabled:opacity-30"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => deletePage(page.id)}
-                        title="Remove page"
-                        className="p-1 hover:bg-destructive/10 text-destructive rounded"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => togglePageSelect(page.id)}
+                      className="text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      {page.selected ? (
+                        <CheckSquare className="w-4 h-4 text-indigo-500" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
                   </div>
 
-                  {/* Thumbnail Container */}
-                  <div
-                    onClick={() => togglePageSelect(page.id)}
-                    className="relative aspect-[3/4] p-3 flex items-center justify-center cursor-pointer overflow-hidden bg-background/50"
-                  >
+                  {/* Thumbnail */}
+                  <div className="relative aspect-[3/4] w-full rounded border border-border/60 bg-muted/30 overflow-hidden flex items-center justify-center">
                     {page.thumbnail ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={page.thumbnail}
-                        alt={`Page ${page.originalPageIndex + 1}`}
+                        alt={page.docName}
                         style={{ transform: `rotate(${page.rotation}deg)` }}
-                        className="max-h-full max-w-full object-contain shadow-sm transition-transform duration-200"
+                        className="w-full h-full object-contain transition-transform"
                       />
                     ) : (
-                      <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1">
+                      <div className="flex flex-col items-center gap-1 text-muted-foreground">
                         <FileText className="w-8 h-8 opacity-40" />
-                        <span>Page {page.originalPageIndex + 1}</span>
+                        <span className="text-[10px]">Loading...</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Bottom Controls */}
-                  <div className="p-2 border-t border-border flex items-center justify-between gap-1 text-xs bg-muted/20">
-                    <Badge variant="outline" className={`text-[10px] px-1.5 py-0 truncate max-w-[100px] ${page.docColor}`}>
+                  <div className="mt-2 flex items-center justify-between gap-1 text-xs">
+                    <p className="text-[11px] font-medium text-foreground truncate max-w-[100px]" title={page.docName}>
                       {page.docName}
-                    </Badge>
+                    </p>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-0.5 shrink-0">
                       <button
                         onClick={() => rotatePage(page.id, 90)}
-                        title="Rotate right"
-                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                        title="Rotate 90°"
                       >
                         <RotateCw className="w-3.5 h-3.5" />
                       </button>
-                      {page.thumbnail && (
-                        <button
-                          onClick={() => setPreviewPage(page)}
-                          title="Preview"
-                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => deletePage(page.id)}
+                        className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500"
+                        title="Delete page"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-      </main>
 
-      {/* Preview Modal */}
-      {previewPage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="relative max-w-2xl w-full bg-card rounded-2xl border border-border shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <div>
-                <h3 className="font-semibold text-base">Page Preview</h3>
-                <p className="text-xs text-muted-foreground">
-                  {previewPage.docName} — Page {previewPage.originalPageIndex + 1}
-                </p>
+            {/* Bottom Export Action Toolbar */}
+            <div className="sticky bottom-4 z-20 rounded-md border border-border bg-card p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-muted-foreground">
+                Selected <span className="font-bold text-foreground">{selectedCount}</span> of {pages.length} pages
               </div>
-              <Button size="icon" variant="ghost" onClick={() => setPreviewPage(null)}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            <div className="flex-1 p-6 overflow-auto flex items-center justify-center bg-muted/20">
-              {previewPage.thumbnail && (
-                <img
-                  src={previewPage.thumbnail}
-                  alt="Preview"
-                  style={{ transform: `rotate(${previewPage.rotation}deg)` }}
-                  className="max-h-[60vh] object-contain shadow-md rounded transition-transform duration-200"
-                />
+
+              {mergedUrl ? (
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <Check className="w-4 h-4" /> Ready ({formatBytes(mergedSize)})
+                  </div>
+                  <a
+                    href={mergedUrl}
+                    download={mergedFilename}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download PDF
+                  </a>
+                </div>
+              ) : (
+                <Button
+                  onClick={handleMergeAndExport}
+                  disabled={selectedCount === 0 || isProcessing}
+                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 cursor-pointer"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Compiling Document...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Layers className="w-4 h-4" />
+                      <span>Export Selected Pages ({selectedCount})</span>
+                    </>
+                  )}
+                </Button>
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
 
       <Footer />
     </div>

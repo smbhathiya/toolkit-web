@@ -4,404 +4,381 @@ import { useState } from "react"
 import Link from "next/link"
 import {
   Search,
-  Scale,
-  QrCode,
-  Barcode,
-  Fingerprint,
-  ArrowLeftRight,
+  Star,
   ShieldCheck,
-  CalendarDays,
-  Droplets,
-  Ruler,
-  Baby,
-  FileStack,
-  Scissors,
-  Stamp,
-  Minimize2,
-  Layers,
-  FileImage,
   Zap,
-  Braces,
-  KeyRound,
-  Palette,
+  Lock,
+  Layers,
   Sparkles,
-  Link2,
+  Grid,
+  List,
+  ArrowUpRight,
+  CheckCircle2,
 } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-
-interface Tool {
-  id: string
-  name: string
-  description: string
-  icon: LucideIcon
-  href: string
-  iconClass: string
-  iconWrapperClass: string
-}
-
-interface Category {
-  id: string
-  label: string
-  tools: Tool[]
-}
-
-const categories: Category[] = [
-  {
-    id: "health",
-    label: "Health & Fitness",
-    tools: [
-      {
-        id: "bmi-calculator",
-        name: "BMI Calculator",
-        description: "Calculate your Body Mass Index and check your health category.",
-        icon: Scale,
-        href: "/bmi-calculator",
-        iconClass: "text-blue-600 dark:text-blue-400",
-        iconWrapperClass: "bg-blue-100 dark:bg-blue-900/40",
-      },
-      {
-        id: "age-calculator",
-        name: "Age Calculator",
-        description: "Find your exact age in years, months, and days from your date of birth.",
-        icon: CalendarDays,
-        href: "/age-calculator",
-        iconClass: "text-orange-600 dark:text-orange-400",
-        iconWrapperClass: "bg-orange-100 dark:bg-orange-900/40",
-      },
-      {
-        id: "water-intake",
-        name: "Water Intake",
-        description: "Calculate your ideal daily water intake based on weight and activity level.",
-        icon: Droplets,
-        href: "/water-intake",
-        iconClass: "text-sky-600 dark:text-sky-400",
-        iconWrapperClass: "bg-sky-100 dark:bg-sky-900/40",
-      },
-      {
-        id: "ideal-weight",
-        name: "Ideal Weight",
-        description: "Find your healthy weight range using Devine, Robinson, and Miller formulas.",
-        icon: Ruler,
-        href: "/ideal-weight",
-        iconClass: "text-teal-600 dark:text-teal-400",
-        iconWrapperClass: "bg-teal-100 dark:bg-teal-900/40",
-      },
-      {
-        id: "pregnancy-due-date",
-        name: "Pregnancy Due Date",
-        description: "Estimate your due date, current week, trimester, and key milestones.",
-        icon: Baby,
-        href: "/pregnancy-due-date",
-        iconClass: "text-pink-600 dark:text-pink-400",
-        iconWrapperClass: "bg-pink-100 dark:bg-pink-900/40",
-      },
-    ],
-  },
-  {
-    id: "media",
-    label: "Media & Images",
-    tools: [
-      {
-        id: "image-converter",
-        name: "Any Image Converter",
-        description: "Convert PNG, JPG, WEBP, BMP, GIF & SVG to any format client-side.",
-        icon: FileImage,
-        href: "/image-converter",
-        iconClass: "text-blue-600 dark:text-blue-400",
-        iconWrapperClass: "bg-blue-100 dark:bg-blue-900/40",
-      },
-      {
-        id: "image-compressor",
-        name: "Image Size Reducer",
-        description: "Intelligently shrink image file size up to 80% with zero quality loss.",
-        icon: Zap,
-        href: "/image-compressor",
-        iconClass: "text-amber-600 dark:text-amber-400",
-        iconWrapperClass: "bg-amber-100 dark:bg-amber-900/40",
-      },
-    ],
-  },
-  {
-    id: "generators",
-    label: "Generators",
-    tools: [
-      {
-        id: "qr-generator",
-        name: "QR Generator",
-        description: "Generate QR codes for URLs, text, contacts, and more.",
-        icon: QrCode,
-        href: "/qr-generator",
-        iconClass: "text-purple-600 dark:text-purple-400",
-        iconWrapperClass: "bg-purple-100 dark:bg-purple-900/40",
-      },
-      {
-        id: "barcode-generator",
-        name: "Barcode Generator",
-        description: "Create barcodes in multiple standard formats instantly.",
-        icon: Barcode,
-        href: "/barcode-generator",
-        iconClass: "text-emerald-600 dark:text-emerald-400",
-        iconWrapperClass: "bg-emerald-100 dark:bg-emerald-900/40",
-      },
-      {
-        id: "guid-generator",
-        name: "GUID Generator",
-        description: "Generate cryptographically random UUIDs (version 4) in bulk.",
-        icon: Fingerprint,
-        href: "/guid-generator",
-        iconClass: "text-violet-600 dark:text-violet-400",
-        iconWrapperClass: "bg-violet-100 dark:bg-violet-900/40",
-      },
-      {
-        id: "password-generator",
-        name: "Password Generator",
-        description: "Generate custom, cryptographically secure passwords client-side.",
-        icon: KeyRound,
-        href: "/password-generator",
-        iconClass: "text-blue-600 dark:text-blue-400",
-        iconWrapperClass: "bg-blue-100 dark:bg-blue-900/40",
-      },
-      {
-        id: "color-palette-generator",
-        name: "Color Palette Generator",
-        description: "Design matching color schemes using visual harmony algorithms.",
-        icon: Palette,
-        href: "/color-palette-generator",
-        iconClass: "text-amber-600 dark:text-amber-400",
-        iconWrapperClass: "bg-amber-100 dark:bg-amber-900/40",
-      },
-      {
-        id: "blob-generator",
-        name: "SVG Blob Generator",
-        description: "Generate unique, organic vector SVG shapes and gradients.",
-        icon: Sparkles,
-        href: "/blob-generator",
-        iconClass: "text-purple-600 dark:text-purple-400",
-        iconWrapperClass: "bg-purple-100 dark:bg-purple-900/40",
-      },
-    ],
-  },
-  {
-    id: "developer",
-    label: "Developer Tools",
-    tools: [
-      {
-        id: "base64-coder",
-        name: "Base64 Coder",
-        description: "Encode text to Base64 or decode Base64 strings back to plain text.",
-        icon: ArrowLeftRight,
-        href: "/base64-coder",
-        iconClass: "text-cyan-600 dark:text-cyan-400",
-        iconWrapperClass: "bg-cyan-100 dark:bg-cyan-900/40",
-      },
-      {
-        id: "hash-generator",
-        name: "Hash Generator",
-        description: "Generate SHA-1, SHA-256, and SHA-512 hashes from any text.",
-        icon: ShieldCheck,
-        href: "/hash-generator",
-        iconClass: "text-rose-600 dark:text-rose-400",
-        iconWrapperClass: "bg-rose-100 dark:bg-rose-900/40",
-      },
-      {
-        id: "json-formatter",
-        name: "JSON Formatter & Validator",
-        description: "Format, validate, and tree-visualize JSON data client-side.",
-        icon: Braces,
-        href: "/json-formatter",
-        iconClass: "text-purple-600 dark:text-purple-400",
-        iconWrapperClass: "bg-purple-100 dark:bg-purple-900/40",
-      },
-    ],
-  },
-  {
-    id: "document",
-    label: "Document Tools",
-    tools: [
-      {
-        id: "pdf-organizer",
-        name: "PDF Split & Merge Studio",
-        description: "Upload multiple PDFs, split into pages, reorder, rotate & merge.",
-        icon: Layers,
-        href: "/pdf-organizer",
-        iconClass: "text-indigo-600 dark:text-indigo-400",
-        iconWrapperClass: "bg-indigo-100 dark:bg-indigo-900/40",
-      },
-      {
-        id: "pdf-merger",
-        name: "PDF Merger",
-        description: "Combine multiple PDF files into a single document seamlessly.",
-        icon: FileStack,
-        href: "/pdf-merger",
-        iconClass: "text-red-600 dark:text-red-400",
-        iconWrapperClass: "bg-red-100 dark:bg-red-900/40",
-      },
-      {
-        id: "pdf-splitter",
-        name: "PDF Splitter",
-        description: "Separate pages from a PDF document or extract custom ranges.",
-        icon: Scissors,
-        href: "/pdf-splitter",
-        iconClass: "text-amber-600 dark:text-amber-400",
-        iconWrapperClass: "bg-amber-100 dark:bg-amber-900/40",
-      },
-      {
-        id: "pdf-watermark",
-        name: "PDF Watermark",
-        description: "Add confidential text stamps or custom watermarks across PDF pages.",
-        icon: Stamp,
-        href: "/pdf-watermark",
-        iconClass: "text-blue-600 dark:text-blue-400",
-        iconWrapperClass: "bg-blue-100 dark:bg-blue-900/40",
-      },
-      {
-        id: "pdf-compressor",
-        name: "PDF Compressor",
-        description: "Optimize object streams and structure to reduce PDF file size.",
-        icon: Minimize2,
-        href: "/pdf-compressor",
-        iconClass: "text-teal-600 dark:text-teal-400",
-        iconWrapperClass: "bg-teal-100 dark:bg-teal-900/40",
-      },
-      {
-        id: "pdf-link-editor",
-        name: "PDF Link Editor",
-        description: "Draw clickable hotspots on PDF pages and attach real URL links.",
-        icon: Link2,
-        href: "/pdf-link-editor",
-        iconClass: "text-violet-600 dark:text-violet-400",
-        iconWrapperClass: "bg-violet-100 dark:bg-violet-900/40",
-      },
-    ],
-  },
-]
-
-function ToolCard({ tool }: { tool: Tool }) {
-  const Icon = tool.icon
-  return (
-    <Link href={tool.href} className="group">
-      <Card className="h-full transition-all duration-200 hover:shadow-md active:scale-[0.98] cursor-pointer">
-        <CardContent className="flex flex-col gap-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${tool.iconWrapperClass}`}>
-            <Icon className={`w-5 h-5 ${tool.iconClass}`} />
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-              {tool.name}
-            </p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {tool.description}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  )
-}
+import { ALL_TOOLS, TOOL_CATEGORIES } from "@/lib/tools-registry"
 
 export default function Home() {
   const [query, setQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const savedFavs = localStorage.getItem("omni_fav_tools")
+      return savedFavs ? JSON.parse(savedFavs) : []
+    } catch {
+      return []
+    }
+  })
 
-  const filtered = categories
-    .filter((cat) => activeCategory === "all" || cat.id === activeCategory)
-    .map((cat) => ({
-      ...cat,
-      tools: cat.tools.filter(
-        (t) =>
-          t.name.toLowerCase().includes(query.toLowerCase()) ||
-          t.description.toLowerCase().includes(query.toLowerCase())
-      ),
-    }))
-    .filter((cat) => cat.tools.length > 0)
+  const toggleFavorite = (e: React.MouseEvent, toolId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setFavorites((prev) => {
+      const updated = prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
+      try {
+        localStorage.setItem("omni_fav_tools", JSON.stringify(updated))
+      } catch (err) {
+        console.error("Failed to save favorites", err)
+      }
+      return updated
+    })
+  }
+
+  const filteredTools = ALL_TOOLS.filter((tool) => {
+    const matchesQuery =
+      tool.name.toLowerCase().includes(query.toLowerCase()) ||
+      tool.description.toLowerCase().includes(query.toLowerCase())
+
+    if (!matchesQuery) return false
+
+    if (activeCategory === "all") return true
+    if (activeCategory === "favorites") return favorites.includes(tool.id)
+    return tool.category === activeCategory
+  })
+
+  const categoriesToRender =
+    activeCategory === "all"
+      ? Object.keys(TOOL_CATEGORIES).map((catId) => ({
+          catId,
+          catMeta: TOOL_CATEGORIES[catId],
+          tools: filteredTools.filter((t) => t.category === catId),
+        })).filter((cat) => cat.tools.length > 0)
+      : [
+          {
+            catId: activeCategory,
+            catMeta:
+              activeCategory === "favorites"
+                ? { label: "Your Favorite Tools", icon: Star, description: "Quick access to your bookmarked tools." }
+                : TOOL_CATEGORIES[activeCategory],
+            tools: filteredTools,
+          },
+        ]
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
-        {/* Hero & Search Header */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="text-left">
-            <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Your Everyday Toolkit
-            </h1>
-            <p className="text-sm text-muted-foreground sm:text-base">
-              Simple, fast, and free tools right in your browser.
-            </p>
-          </div>
+      {/* Hero Section */}
+      <section className="relative pt-16 pb-4 sm:pt-24 sm:pb-6 bg-background">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 relative text-center">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto leading-[1.1]">
+            OmniTool <br className="hidden sm:inline" />
+            <span className="text-rose-600 dark:text-rose-500">
+              Your Everyday Toolkit.
+            </span>
+          </h1>
 
-          <div className="relative w-full sm:w-80 shrink-0">
-            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search tools..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="h-10 pl-9 text-sm w-full"
-            />
-          </div>
+          <p className="mt-4 text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Fast, privacy-focused PDF & developer tools directly in your browser. Zero server uploads, no file limits, 100% free.
+          </p>
         </div>
+      </section>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8">
-          <button
-            onClick={() => setActiveCategory("all")}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-              activeCategory === "all"
-                ? "bg-foreground text-background shadow-sm"
-                : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            All Tools
-          </button>
-          {categories.map((cat) => (
+      {/* Main Tools Container */}
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 sm:py-14">
+        {/* Search & Category Tabs */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                activeCategory === cat.id
-                  ? "bg-foreground text-background shadow-sm"
-                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => setActiveCategory("all")}
+              className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
+                activeCategory === "all"
+                  ? "bg-rose-600 text-white shadow-xs"
+                  : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              {cat.label}
+              All Tools ({ALL_TOOLS.length})
             </button>
-          ))}
+
+            {favorites.length > 0 && (
+              <button
+                onClick={() => setActiveCategory("favorites")}
+                className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  activeCategory === "favorites"
+                    ? "bg-amber-500 text-white shadow-xs"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
+                }`}
+              >
+                <Star className="w-4 h-4 fill-amber-500" />
+                <span>Favorites ({favorites.length})</span>
+              </button>
+            )}
+
+            {Object.entries(TOOL_CATEGORIES).map(([catKey, cat]) => {
+              const count = ALL_TOOLS.filter((t) => t.category === catKey).length
+              return (
+                <button
+                  key={catKey}
+                  onClick={() => setActiveCategory(catKey)}
+                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-md text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    activeCategory === catKey
+                      ? "bg-rose-600 text-white shadow-xs"
+                      : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {cat.label} ({count})
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="relative flex-1 md:w-72">
+              <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search tools..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-10 pl-9 text-xs sm:text-sm rounded-xl"
+              />
+            </div>
+
+            <div className="hidden sm:flex items-center rounded-xl border border-border/80 bg-muted/40 p-1">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+                  viewMode === "grid" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Grid View"
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+                  viewMode === "list" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Compact List View"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Category sections */}
-        {filtered.length > 0 ? (
-          <div className="space-y-10">
-            {filtered.map((cat) => (
-              <section key={cat.id}>
-                {/* Category heading */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    {cat.label}
-                  </span>
-                  <div className="h-px flex-1 bg-border" />
+        {/* Tools Display */}
+        {categoriesToRender.length > 0 ? (
+          <div className="space-y-12">
+            {categoriesToRender.map(({ catId, catMeta, tools }) => (
+              <section key={catId} className="space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-3">
+                    {catMeta?.icon && (
+                      <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                        <catMeta.icon className="w-4 h-4" />
+                      </div>
+                    )}
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground">
+                        {catMeta?.label}
+                      </h2>
+                      {catMeta?.description && (
+                        <p className="text-xs text-muted-foreground hidden sm:block">
+                          {catMeta.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-mono">
+                    {tools.length} {tools.length === 1 ? "tool" : "tools"}
+                  </Badge>
                 </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-                  {cat.tools.map((tool) => (
-                    <ToolCard key={tool.id} tool={tool} />
-                  ))}
-                </div>
+
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    {tools.map((tool) => {
+                      const Icon = tool.icon
+                      const isFav = favorites.includes(tool.id)
+
+                      return (
+                        <Link
+                          key={tool.id}
+                          href={tool.href}
+                          className="group relative"
+                        >
+                          <Card className="h-full rounded-md border border-border bg-card hover:border-rose-500/40 hover:shadow-xs transition-all">
+                            <CardContent className="p-4 flex flex-col justify-between h-full gap-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div
+                                  className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 border ${tool.iconWrapperClass}`}
+                                >
+                                  <Icon className={`w-5 h-5 ${tool.iconClass}`} />
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  {tool.badgeText && (
+                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                      {tool.badgeText}
+                                    </span>
+                                  )}
+                                  {tool.isPopular && !tool.badgeText && (
+                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                      POPULAR
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={(e) => toggleFavorite(e, tool.id)}
+                                    title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+                                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-amber-500 transition-colors"
+                                  >
+                                    <Star
+                                      className={`w-4 h-4 ${
+                                        isFav ? "fill-amber-500 text-amber-500" : "opacity-40 hover:opacity-100"
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-sm font-bold text-foreground group-hover:text-rose-500 transition-colors">
+                                    {tool.name}
+                                  </h3>
+                                  <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                  {tool.description}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {tools.map((tool) => {
+                      const Icon = tool.icon
+                      const isFav = favorites.includes(tool.id)
+
+                      return (
+                        <Link
+                          key={tool.id}
+                          href={tool.href}
+                          className="group flex items-center justify-between p-3.5 rounded-md border border-border bg-card hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${tool.iconWrapperClass}`}
+                            >
+                              <Icon className={`w-5 h-5 ${tool.iconClass}`} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-foreground group-hover:text-rose-500 transition-colors truncate">
+                                {tool.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">{tool.description}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={(e) => toggleFavorite(e, tool.id)}
+                              className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-amber-500 transition-colors"
+                            >
+                              <Star
+                                className={`w-4 h-4 ${
+                                  isFav ? "fill-amber-500 text-amber-500" : "opacity-40"
+                                }`}
+                              />
+                            </button>
+                            <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-rose-500 transition-colors" />
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
               </section>
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center">
-            <p className="text-sm text-muted-foreground">
-              No tools match &ldquo;{query}&rdquo;
-            </p>
+          <div className="py-20 text-center space-y-3">
+            <Sparkles className="w-10 h-10 text-muted-foreground/40 mx-auto" />
+            <p className="text-base font-semibold text-foreground">No tools match &ldquo;{query}&rdquo;</p>
+            <p className="text-xs text-muted-foreground">Try clearing filters or search terms</p>
           </div>
         )}
+
+        {/* Why Client-Side PDF Architecture is Superior */}
+        <section className="mt-16 sm:mt-24 p-6 sm:p-10 rounded-lg border border-border bg-card shadow-xs relative overflow-hidden">
+          <div className="max-w-3xl space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Privacy & Speed Advantage</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              Why In-Browser PDF Processing is Superior
+            </h2>
+
+            <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
+              Traditional online PDF converters require you to upload private contracts, financial statements, and sensitive documents to third-party cloud servers. OmniTool operates 100% locally inside your web browser using high-performance WebAssembly and JavaScript engines.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">100% Client-Side Privacy</h4>
+                  <p className="text-xs text-muted-foreground">Files never leave your device. Zero upload risk.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">No File Size Limits</h4>
+                  <p className="text-xs text-muted-foreground">Process gigabyte-sized PDFs at native disk speed.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">Zero Waiting Queues</h4>
+                  <p className="text-xs text-muted-foreground">Instant execution without waiting for server downloads.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">All Tools Unlocked</h4>
+                  <p className="text-xs text-muted-foreground">No daily usage caps, watermarks, or paywalls.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
