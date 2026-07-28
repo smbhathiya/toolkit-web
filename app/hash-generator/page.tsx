@@ -30,18 +30,24 @@ export default function HashGenerator() {
   const [copied, setCopied] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!input.trim()) {
-      setHashes({})
-      return
-    }
     let active = true
+    if (!input.trim()) {
+      Promise.resolve().then(() => {
+        if (active) setHashes({})
+      })
+      return () => {
+        active = false
+      }
+    }
     Promise.all(ALGORITHMS.map((a) => digest(a, input).then((h) => [a, h] as const))).then(
       (results) => {
         if (active)
           setHashes(Object.fromEntries(results) as Record<Algo, string>)
       }
     )
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [input])
 
   const copyHash = async (hash: string) => {

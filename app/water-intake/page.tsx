@@ -69,7 +69,7 @@ export default function WaterIntake() {
     })
     prevResultRef.current = result
     return () => ctx.revert()
-  }, [result?.liters, result?.glasses, result?.ml])
+  }, [result])
 
   const fillPct = result ? Math.min(92, (result.liters / 5) * 100) : 0
 
@@ -77,7 +77,7 @@ export default function WaterIntake() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-[1400px]">
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
 

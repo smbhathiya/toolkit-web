@@ -100,7 +100,7 @@ export default function PregnancyDueDate() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-[1400px]">
 
           <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] gap-6 items-start">
 

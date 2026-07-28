@@ -2,7 +2,6 @@
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react"
 import {
-  FileImage,
   Upload,
   Trash2,
   Download,
@@ -11,20 +10,11 @@ import {
   Check,
   Plus,
   Minimize2,
-  Sparkles,
-  ArrowRight,
-  Sliders,
   X,
   Zap,
   Eye,
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/navbar"
@@ -64,6 +54,7 @@ export default function ImageCompressor() {
   const [globalPreset, setGlobalPreset] = useState<CompressionPreset>("smart")
   const [globalQuality, setGlobalQuality] = useState<number>(80)
   const [maxDimension, setMaxDimension] = useState<number>(0) // 0 = original
+  const [targetFormat, setTargetFormat] = useState<"auto" | "webp" | "jpeg" | "png">("auto")
   const [isDragging, setIsDragging] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   
@@ -76,7 +67,8 @@ export default function ImageCompressor() {
     item: ImageItem,
     preset: CompressionPreset,
     quality: number,
-    maxDim: number
+    maxDim: number,
+    format: "auto" | "webp" | "jpeg" | "png" = targetFormat
   ) => {
     setItems((prev) =>
       prev.map((i) => (i.id === item.id ? { ...i, isCompressing: true, error: undefined } : i))
@@ -91,13 +83,9 @@ export default function ImageCompressor() {
 
         // Apply scale down if max dimension set and image exceeds it
         if (maxDim > 0 && (img.width > maxDim || img.height > maxDim)) {
-          if (img.width > img.height) {
-            targetWidth = maxDim
-            targetHeight = Math.round((img.height * maxDim) / img.width)
-          } else {
-            targetHeight = maxDim
-            targetWidth = Math.round((img.width * maxDim) / img.height)
-          }
+          const scale = maxDim / Math.max(img.width, img.height)
+          targetWidth = Math.round(img.width * scale)
+          targetHeight = Math.round(img.height * scale)
         }
 
         const canvas = document.createElement("canvas")
@@ -113,10 +101,14 @@ export default function ImageCompressor() {
 
         const isPng = item.file.type === "image/png" || item.originalName.toLowerCase().endsWith(".png")
 
-        // If not PNG or user chose max compression, convert to WebP/JPEG for maximum size reduction
+        // Select optimal output MIME type
         let mimeType = item.file.type
-        if (preset === "max" || (!isPng && mimeType !== "image/webp")) {
+        if (format === "webp" || (format === "auto" && (isPng || preset === "smart" || preset === "max"))) {
           mimeType = "image/webp"
+        } else if (format === "jpeg") {
+          mimeType = "image/jpeg"
+        } else if (format === "png") {
+          mimeType = "image/png"
         }
 
         if (mimeType === "image/jpeg") {
@@ -126,7 +118,7 @@ export default function ImageCompressor() {
 
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
 
-        const effQuality = preset === "smart" ? 0.8 : preset === "max" ? 0.6 : quality / 100
+        const effQuality = preset === "smart" ? 0.75 : preset === "max" ? 0.55 : quality / 100
 
         canvas.toBlob(
           (blob) => {
@@ -139,8 +131,17 @@ export default function ImageCompressor() {
               return
             }
 
-            const url = URL.createObjectURL(blob)
-            const ext = mimeType === "image/webp" ? "webp" : mimeType === "image/jpeg" ? "jpg" : "png"
+            let finalBlob = blob
+            let finalMime = mimeType
+
+            // Safety check: if format is auto and compressed size exceeds original, fallback to WebP or original
+            if (blob.size >= item.originalSize && format === "auto" && maxDim === 0 && !isPng) {
+              finalBlob = item.file
+              finalMime = item.file.type
+            }
+
+            const url = URL.createObjectURL(finalBlob)
+            const ext = finalMime === "image/webp" ? "webp" : finalMime === "image/jpeg" ? "jpg" : "png"
             const baseName = item.originalName.substring(0, item.originalName.lastIndexOf(".")) || item.originalName
             const compressedName = `${baseName}_min.${ext}`
 
@@ -152,7 +153,7 @@ export default function ImageCompressor() {
                       preset,
                       quality,
                       compressedUrl: url,
-                      compressedSize: blob.size,
+                      compressedSize: finalBlob.size,
                       compressedName,
                       isCompressing: false,
                     }
@@ -258,18 +259,23 @@ export default function ImageCompressor() {
     if (preset === "smart") q = 80
     if (preset === "max") q = 60
     setGlobalQuality(q)
-    items.forEach((item) => compressSingleImage(item, preset, q, maxDimension))
+    items.forEach((item) => compressSingleImage(item, preset, q, maxDimension, targetFormat))
   }
 
   const handleGlobalQualityChange = (q: number) => {
     setGlobalQuality(q)
     setGlobalPreset("custom")
-    items.forEach((item) => compressSingleImage(item, "custom", q, maxDimension))
+    items.forEach((item) => compressSingleImage(item, "custom", q, maxDimension, targetFormat))
   }
 
   const handleMaxDimensionChange = (dim: number) => {
     setMaxDimension(dim)
-    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, dim))
+    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, dim, targetFormat))
+  }
+
+  const handleTargetFormatChange = (fmt: "auto" | "webp" | "jpeg" | "png") => {
+    setTargetFormat(fmt)
+    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, maxDimension, fmt))
   }
 
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id))
@@ -302,7 +308,7 @@ export default function ImageCompressor() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -464,19 +470,35 @@ export default function ImageCompressor() {
                 </div>
               </div>
 
-              {/* Resolution limit selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-muted-foreground shrink-0">Max Res:</span>
-                <select
-                  value={maxDimension}
-                  onChange={(e) => handleMaxDimensionChange(Number(e.target.value))}
-                  className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
-                >
-                  <option value={0}>Original Resolution</option>
-                  <option value={2048}>Max 2K (2048px)</option>
-                  <option value={1920}>Max Full HD (1920px)</option>
-                  <option value={1280}>Max HD (1280px)</option>
-                </select>
+              {/* Resolution & Format selectors */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">Output Format:</span>
+                  <select
+                    value={targetFormat}
+                    onChange={(e) => handleTargetFormatChange(e.target.value as "auto" | "webp" | "jpeg" | "png")}
+                    className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
+                  >
+                    <option value="auto">Auto / WebP (Best Compression)</option>
+                    <option value="webp">WebP (High Quality & Small)</option>
+                    <option value="jpeg">JPEG (Universal Compatibility)</option>
+                    <option value="png">PNG (Original Format)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">Max Res:</span>
+                  <select
+                    value={maxDimension}
+                    onChange={(e) => handleMaxDimensionChange(Number(e.target.value))}
+                    className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
+                  >
+                    <option value={0}>Original Resolution</option>
+                    <option value={2048}>Max 2K (2048px)</option>
+                    <option value={1920}>Max Full HD (1920px)</option>
+                    <option value={1280}>Max HD (1280px)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -492,6 +514,7 @@ export default function ImageCompressor() {
                       {/* Left thumbnail */}
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-14 h-14 rounded-lg border border-border bg-muted/30 flex items-center justify-center overflow-hidden shrink-0 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={item.originalUrl}
                             alt={item.originalName}
@@ -594,6 +617,7 @@ export default function ImageCompressor() {
                   <Badge variant="outline">{formatBytes(previewItem.originalSize)}</Badge>
                 </div>
                 <div className="aspect-video rounded-xl border border-border bg-background flex items-center justify-center p-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewItem.originalUrl} alt="Original" className="max-h-full max-w-full object-contain" />
                 </div>
               </div>
@@ -604,6 +628,7 @@ export default function ImageCompressor() {
                   <Badge className="bg-emerald-600 text-white">{formatBytes(previewItem.compressedSize!)}</Badge>
                 </div>
                 <div className="aspect-video rounded-xl border border-emerald-500/40 bg-background flex items-center justify-center p-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewItem.compressedUrl} alt="Reduced" className="max-h-full max-w-full object-contain" />
                 </div>
               </div>

@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ToolHeader } from "@/components/tool-header"
 
 function formatBytes(bytes: number, decimals = 1) {
   if (bytes === 0) return "0 Bytes"
@@ -170,16 +171,15 @@ export default function PDFCompressor() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-24 pb-12 max-w-4xl">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-teal-500/10 text-teal-500 mb-4">
-            <Minimize2 className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">PDF Compressor</h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Optimize document structure and object streams to reduce PDF file size for sharing or storage.
-          </p>
-        </div>
+      <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
+        <ToolHeader
+          title="PDF Compressor"
+          description="Optimize object streams and structure to reduce PDF file size for fast sharing or storage."
+          icon={Minimize2}
+          iconClass="text-emerald-500"
+          iconWrapperClass="bg-emerald-500/10 border-emerald-500/20"
+          categoryName="PDF Tools"
+        />
 
         <Card className="shadow-sm border">
           <CardHeader>

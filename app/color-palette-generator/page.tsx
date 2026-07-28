@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Palette,
   Copy,
@@ -8,16 +8,8 @@ import {
   Lock,
   Unlock,
   RefreshCw,
-  Sparkles,
-  Sliders,
-  Contrast,
   Share2,
-  Info,
   Maximize2,
-  Eye,
-  SlidersHorizontal,
-  ChevronDown,
-  ChevronUp
 } from "lucide-react"
 import {
   Card,
@@ -47,9 +39,9 @@ function hexToHsl(hex: string): HSL {
   if (hex.length === 3) {
     hex = hex.split("").map((c) => c + c).join("")
   }
-  let r = parseInt(hex.substring(0, 2), 16) / 255
-  let g = parseInt(hex.substring(2, 4), 16) / 255
-  let b = parseInt(hex.substring(4, 6), 16) / 255
+  const r = parseInt(hex.substring(0, 2), 16) / 255
+  const g = parseInt(hex.substring(2, 4), 16) / 255
+  const b = parseInt(hex.substring(4, 6), 16) / 255
 
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
@@ -184,7 +176,6 @@ export default function ColorPaletteGenerator() {
   const [mode, setMode] = useState<PaletteMode>("random")
   const [copiedExport, setCopiedExport] = useState(false)
   const [exportFormat, setExportFormat] = useState<"hex" | "css" | "tailwind" | "json">("hex")
-  const [contrastPanelIdx, setContrastPanelIdx] = useState<number | null>(null)
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light")
 
   // Generate random base color HSL
@@ -195,10 +186,10 @@ export default function ColorPaletteGenerator() {
   })
 
   // Generate Palette trigger
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
     // Find base color from first locked item, or generate random
     const firstLocked = colors.find((c) => c.locked)
-    let baseHsl = firstLocked ? hexToHsl(firstLocked.hex) : randomHsl()
+    const baseHsl = firstLocked ? hexToHsl(firstLocked.hex) : randomHsl()
 
     // Plan target HSL for each slot (0: Primary, 1: Secondary, 2: Accent, 3: Light Neutral, 4: Dark Neutral)
     const targets: HSL[] = []
@@ -276,19 +267,14 @@ export default function ColorPaletteGenerator() {
       }
     }
 
-    const newColors = colors.map((color, idx) => {
-      if (color.locked) return color
-      const t = targets[idx] || randomHsl()
-      return { hex: hslToHex(t), locked: false }
-    })
-
-    setColors(newColors)
-  }
-
-  // Trigger once on mount to get random colors
-  useEffect(() => {
-    handleGenerate()
-  }, [mode])
+    setColors((prev) =>
+      prev.map((color, idx) => {
+        if (color.locked) return color
+        const t = targets[idx] || randomHsl()
+        return { hex: hslToHex(t), locked: false }
+      })
+    )
+  }, [colors, mode])
 
   // Key event listener for Spacebar
   useEffect(() => {
@@ -300,7 +286,7 @@ export default function ColorPaletteGenerator() {
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [colors, mode])
+  }, [handleGenerate])
 
   const toggleLock = (index: number) => {
     setColors((prev) =>
@@ -386,7 +372,7 @@ export default function ColorPaletteGenerator() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-24 pb-10 sm:px-6 sm:pt-28 sm:pb-14">
         {/* Header */}
         <div className="mb-6 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">

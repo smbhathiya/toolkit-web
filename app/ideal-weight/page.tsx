@@ -56,8 +56,12 @@ export default function IdealWeight() {
 
   const avgRef = useRef<HTMLSpanElement>(null)
   const avgLbsRef = useRef<HTMLSpanElement>(null)
-  const barRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)]
-  const valRefs = [useRef<HTMLSpanElement>(null), useRef<HTMLSpanElement>(null), useRef<HTMLSpanElement>(null)]
+  const barRef0 = useRef<HTMLDivElement>(null)
+  const barRef1 = useRef<HTMLDivElement>(null)
+  const barRef2 = useRef<HTMLDivElement>(null)
+  const valRef0 = useRef<HTMLSpanElement>(null)
+  const valRef1 = useRef<HTMLSpanElement>(null)
+  const valRef2 = useRef<HTMLSpanElement>(null)
   const prevResultRef = useRef<typeof result>(null)
   const hasShownRef = useRef(false)
 
@@ -67,6 +71,8 @@ export default function IdealWeight() {
     hasShownRef.current = true
     const prev = prevResultRef.current
     const maxVal = Math.max(result.devine, result.robinson, result.miller)
+    const barRefs = [barRef0, barRef1, barRef2]
+    const valRefs = [valRef0, valRef1, valRef2]
 
     const ctx = gsap.context(() => {
       if (isFirstShow) gsap.from(".ideal-result-panel", { opacity: 0, x: 30, duration: 0.5, ease: "power3.out" })
@@ -91,7 +97,7 @@ export default function IdealWeight() {
     })
     prevResultRef.current = result
     return () => ctx.revert()
-  }, [result?.devine, result?.robinson, result?.miller, result?.average])
+  }, [result])
 
   const maxVal = result ? Math.max(result.devine, result.robinson, result.miller) : 1
 
@@ -99,7 +105,7 @@ export default function IdealWeight() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 px-4 pt-24 pb-12 sm:pt-28 sm:pb-16">
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-[1400px]">
 
           <div className="grid grid-cols-1 md:grid-cols-[380px_1fr] gap-6 items-start">
 
@@ -199,26 +205,30 @@ export default function IdealWeight() {
                     <div className="px-6 py-5 space-y-5">
                       {/* Formula bars */}
                       <div className="space-y-4">
-                        {FORMULAS.map(({ key, label, barColor, textColor, desc }, i) => (
-                          <div key={key} className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <div>
-                                <span className="font-semibold text-foreground">{label}</span>
-                                <span className="text-xs text-muted-foreground ml-2">{desc}</span>
-                              </div>
-                              <span className={`font-bold tabular-nums ${textColor}`}>
-                                <span ref={valRefs[i]}>{result[key]}</span> kg
-                                <span className="text-xs font-normal text-muted-foreground ml-1.5">
-                                  ({Math.round(result[key] * 2.20462)} lbs)
+                        {(() => {
+                          const barRefList = [barRef0, barRef1, barRef2]
+                          const valRefList = [valRef0, valRef1, valRef2]
+                          return FORMULAS.map(({ key, label, barColor, textColor, desc }, i) => (
+                            <div key={key} className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <div>
+                                  <span className="font-semibold text-foreground">{label}</span>
+                                  <span className="text-xs text-muted-foreground ml-2">{desc}</span>
+                                </div>
+                                <span className={`font-bold tabular-nums ${textColor}`}>
+                                  <span ref={valRefList[i]}>{result[key]}</span> kg
+                                  <span className="text-xs font-normal text-muted-foreground ml-1.5">
+                                    ({Math.round(result[key] * 2.20462)} lbs)
+                                  </span>
                                 </span>
-                              </span>
+                              </div>
+                              <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                                <div ref={barRefList[i]} className={`h-full rounded-full ${barColor}`}
+                                  style={{ width: `${(result[key] / maxVal) * 100}%` }} />
+                              </div>
                             </div>
-                            <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-                              <div ref={barRefs[i]} className={`h-full rounded-full ${barColor}`}
-                                style={{ width: `${(result[key] / maxVal) * 100}%` }} />
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        })()}
                       </div>
 
                       {/* BMI range */}
