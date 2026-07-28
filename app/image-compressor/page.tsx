@@ -64,6 +64,7 @@ export default function ImageCompressor() {
   const [globalPreset, setGlobalPreset] = useState<CompressionPreset>("smart")
   const [globalQuality, setGlobalQuality] = useState<number>(80)
   const [maxDimension, setMaxDimension] = useState<number>(0) // 0 = original
+  const [targetFormat, setTargetFormat] = useState<"auto" | "webp" | "jpeg" | "png">("auto")
   const [isDragging, setIsDragging] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   
@@ -268,18 +269,23 @@ export default function ImageCompressor() {
     if (preset === "smart") q = 80
     if (preset === "max") q = 60
     setGlobalQuality(q)
-    items.forEach((item) => compressSingleImage(item, preset, q, maxDimension))
+    items.forEach((item) => compressSingleImage(item, preset, q, maxDimension, targetFormat))
   }
 
   const handleGlobalQualityChange = (q: number) => {
     setGlobalQuality(q)
     setGlobalPreset("custom")
-    items.forEach((item) => compressSingleImage(item, "custom", q, maxDimension))
+    items.forEach((item) => compressSingleImage(item, "custom", q, maxDimension, targetFormat))
   }
 
   const handleMaxDimensionChange = (dim: number) => {
     setMaxDimension(dim)
-    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, dim))
+    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, dim, targetFormat))
+  }
+
+  const handleTargetFormatChange = (fmt: "auto" | "webp" | "jpeg" | "png") => {
+    setTargetFormat(fmt)
+    items.forEach((item) => compressSingleImage(item, item.preset, item.quality, maxDimension, fmt))
   }
 
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id))
@@ -474,19 +480,35 @@ export default function ImageCompressor() {
                 </div>
               </div>
 
-              {/* Resolution limit selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-muted-foreground shrink-0">Max Res:</span>
-                <select
-                  value={maxDimension}
-                  onChange={(e) => handleMaxDimensionChange(Number(e.target.value))}
-                  className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
-                >
-                  <option value={0}>Original Resolution</option>
-                  <option value={2048}>Max 2K (2048px)</option>
-                  <option value={1920}>Max Full HD (1920px)</option>
-                  <option value={1280}>Max HD (1280px)</option>
-                </select>
+              {/* Resolution & Format selectors */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">Output Format:</span>
+                  <select
+                    value={targetFormat}
+                    onChange={(e) => handleTargetFormatChange(e.target.value as "auto" | "webp" | "jpeg" | "png")}
+                    className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
+                  >
+                    <option value="auto">Auto / WebP (Best Compression)</option>
+                    <option value="webp">WebP (High Quality & Small)</option>
+                    <option value="jpeg">JPEG (Universal Compatibility)</option>
+                    <option value="png">PNG (Original Format)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">Max Res:</span>
+                  <select
+                    value={maxDimension}
+                    onChange={(e) => handleMaxDimensionChange(Number(e.target.value))}
+                    className="text-xs font-semibold bg-muted/60 text-foreground border border-border rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none"
+                  >
+                    <option value={0}>Original Resolution</option>
+                    <option value={2048}>Max 2K (2048px)</option>
+                    <option value={1920}>Max Full HD (1920px)</option>
+                    <option value={1280}>Max HD (1280px)</option>
+                  </select>
+                </div>
               </div>
             </div>
 

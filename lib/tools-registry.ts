@@ -21,6 +21,7 @@ import {
   Sparkles,
   Wand2,
   Link2,
+  Globe,
   LucideIcon,
 } from "lucide-react"
 
@@ -170,6 +171,19 @@ export const ALL_TOOLS: ToolItem[] = [
   },
 
   // Generators
+  {
+    id: "favicon-generator",
+    name: "Favicon & App Icon Studio",
+    description: "Generate favicon.ico, PNG sizes, Web Manifest & HTML tags from images, text or emojis.",
+    icon: Globe,
+    href: "/favicon-generator",
+    category: "generators",
+    iconClass: "text-rose-600 dark:text-rose-400",
+    iconWrapperClass: "bg-rose-500/10 border-rose-500/20",
+    isPopular: true,
+    isNew: true,
+    badgeText: "POPULAR",
+  },
   {
     id: "qr-generator",
     name: "QR Generator",

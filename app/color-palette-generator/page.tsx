@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Palette,
   Copy,
@@ -8,6 +8,8 @@ import {
   Lock,
   Unlock,
   RefreshCw,
+  Share2,
+  Maximize2,
 } from "lucide-react"
 import {
   Card,

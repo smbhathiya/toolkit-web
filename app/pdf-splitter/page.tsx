@@ -528,6 +528,7 @@ export default function PDFSplitter() {
                               {/* Thumbnail or Skeleton */}
                               <div className="w-full h-32 rounded bg-background flex items-center justify-center overflow-hidden mb-2 border shadow-xs">
                                 {thumb ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
                                   <img src={thumb} alt={`Page ${pageNum}`} className="w-full h-full object-contain" />
                                 ) : (
                                   <div className="flex flex-col items-center justify-center text-muted-foreground/50 p-2 text-center">
