@@ -6,10 +6,10 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://omnitool.bhathiya.dev"),
+  metadataBase: new URL("https://utilbee.bhathiya.dev"),
   title: {
-    default: "OmniTool - Privacy-First Online Web Tools Suite",
-    template: "%s | OmniTool",
+    default: "UtilBEE - Privacy-First Online Web Tools Suite",
+    template: "%s | UtilBEE",
   },
   description:
     "100% free & client-side online web tools suite for PDF operations, image compression, QR code generation, favicon studio, developer utilities, and health metrics. No file uploads or signup required.",
@@ -28,10 +28,11 @@ export const metadata: Metadata = {
     "uuid generator",
     "bmi calculator",
     "privacy-first web tools",
+    "utilbee",
   ],
-  authors: [{ name: "OmniTool Team", url: "https://bhathiya.dev" }],
+  authors: [{ name: "UtilBEE Team", url: "https://bhathiya.dev" }],
   creator: "Bhathiya",
-  publisher: "OmniTool",
+  publisher: "UtilBEE",
   robots: {
     index: true,
     follow: true,
@@ -46,9 +47,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://omnitool.bhathiya.dev",
-    siteName: "OmniTool",
-    title: "OmniTool - Free Privacy-First Online Web Tools",
+    url: "https://utilbee.bhathiya.dev",
+    siteName: "UtilBEE",
+    title: "UtilBEE - Free Privacy-First Online Web Tools",
     description:
       "Convert PDFs, compress images, generate favicons, QR codes, passwords & format JSON 100% client-side in your browser.",
     images: [
@@ -56,13 +57,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "OmniTool - Free Online Web Tools Suite",
+        alt: "UtilBEE - Free Online Web Tools Suite",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OmniTool - Free Privacy-First Online Web Tools",
+    title: "UtilBEE - Free Privacy-First Online Web Tools",
     description:
       "Convert PDFs, compress images, generate favicons, QR codes, passwords & format JSON 100% client-side.",
     creator: "@bhathiyadev",
@@ -89,8 +90,8 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "OmniTool",
-    url: "https://omnitool.bhathiya.dev",
+    name: "UtilBEE",
+    url: "https://utilbee.bhathiya.dev",
     applicationCategory: "UtilityApplication",
     operatingSystem: "Any",
     offers: {

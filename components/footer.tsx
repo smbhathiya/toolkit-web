@@ -16,17 +16,14 @@ export function Footer() {
             <Link href="/" className="group inline-flex items-center gap-2.5">
               <Image
                 src="/logo.svg"
-                alt="OmniTool"
+                alt="UtilBEE"
                 width={28}
                 height={28}
                 className="shrink-0 transition-transform duration-200 group-hover:scale-105"
               />
               <div className="flex items-center gap-2">
                 <span className="text-base font-extrabold tracking-tight text-rose-600 dark:text-rose-500">
-                  OmniTool
-                </span>
-                <span className="rounded-md border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-black tracking-wider text-rose-600 uppercase dark:text-rose-400">
-                  BEE
+                  UtilBEE
                 </span>
                 <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">
                   v{version}
@@ -221,8 +218,7 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-3 border-t border-border/50 pt-6 text-xs text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2">
             <span>
-              &copy; {new Date().getFullYear()} OmniTool By BEE. All rights
-              reserved.
+              &copy; {new Date().getFullYear()} UtilBEE. All rights reserved.
             </span>
           </div>
           <span className="flex items-center gap-1">

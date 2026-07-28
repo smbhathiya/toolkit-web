@@ -56,13 +56,13 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <Image
               src="/logo.svg"
-              alt="OmniTool Logo"
+              alt="UtilBEE Logo"
               width={30}
               height={30}
               className="shrink-0 group-hover:scale-105 transition-transform duration-200"
             />
             <span className="text-base font-black tracking-tight text-rose-600 dark:text-rose-500">
-              OmniTool
+              UtilBEE
             </span>
           </Link>
 

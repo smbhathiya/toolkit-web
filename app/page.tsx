@@ -27,7 +27,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window === "undefined") return []
     try {
-      const savedFavs = localStorage.getItem("omni_fav_tools")
+      const savedFavs = localStorage.getItem("utilbee_fav_tools")
       return savedFavs ? JSON.parse(savedFavs) : []
     } catch {
       return []
@@ -41,7 +41,7 @@ export default function Home() {
     setFavorites((prev) => {
       const updated = prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
       try {
-        localStorage.setItem("omni_fav_tools", JSON.stringify(updated))
+        localStorage.setItem("utilbee_fav_tools", JSON.stringify(updated))
       } catch (err) {
         console.error("Failed to save favorites", err)
       }
@@ -87,9 +87,9 @@ export default function Home() {
       <section className="relative pt-16 pb-4 sm:pt-24 sm:pb-6 bg-background">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 relative text-center">
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto leading-[1.1]">
-            OmniTool <br className="hidden sm:inline" />
+            UtilBEE <br className="hidden sm:inline" />
             <span className="text-rose-600 dark:text-rose-500">
-              Your Everyday Toolkit.
+              Your Everyday Toolkit
             </span>
           </h1>
 

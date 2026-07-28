@@ -1,6 +1,6 @@
 {
-  "name": "omnitool",
-  "version": "1.5.1",
+  "name": "utilbee",
+  "version": "1.5.2",
   "type": "module",
   "private": true,
   "scripts": {
